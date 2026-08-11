@@ -310,7 +310,7 @@ ensureCollection(
       householdId: objectId,
       actorMemberId: objectIdOrNull,
       relatedMemberId: objectIdOrNull,
-      type: { enum: ['check-in', 'medication', 'task', 'appointment', 'vitals', 'emergency'] },
+      type: { enum: ['check-in', 'medication', 'task', 'appointment', 'vitals', 'emergency', 'member-joined'] },
       title: { bsonType: 'string' },
       detail: { bsonType: 'string' },
       relatedId: objectIdOrNull,

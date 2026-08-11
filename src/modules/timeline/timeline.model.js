@@ -22,7 +22,7 @@ const timelineEventSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['check-in', 'medication', 'task', 'appointment', 'vitals', 'emergency'],
+      enum: ['check-in', 'medication', 'task', 'appointment', 'vitals', 'emergency', 'member-joined'],
       required: true
     },
     title: {
