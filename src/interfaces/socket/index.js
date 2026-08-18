@@ -42,7 +42,7 @@ const findMembership = async (householdId, userId) => {
 const authenticate = async (socket, next) => {
   const token = readToken(socket)
   if (!token) {
-    return next(new Error('Authentication required'))
+    return next(new Error('กรุณาเข้าสู่ระบบก่อนเชื่อมต่อ'))
   }
 
   try {
@@ -54,7 +54,7 @@ const authenticate = async (socket, next) => {
     socket.data.memberships = new Map()
     return next()
   } catch (error) {
-    return next(new Error('Invalid or expired token'))
+    return next(new Error('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'))
   }
 }
 
@@ -70,13 +70,13 @@ const registerHandlers = (socket) => {
     const respond = typeof ack === 'function' ? ack : () => {}
 
     if (!householdId) {
-      return respond({ ok: false, error: 'householdId is required' })
+      return respond({ ok: false, error: 'กรุณาระบุกลุ่มบ้าน' })
     }
 
     try {
       const membership = await findMembership(householdId, user.id)
       if (!membership) {
-        return respond({ ok: false, error: 'You are not a member of this household' })
+        return respond({ ok: false, error: 'คุณไม่ได้เป็นสมาชิกของกลุ่มบ้านนี้' })
       }
 
       socket.data.memberships.set(String(householdId), membership)
@@ -95,13 +95,13 @@ const registerHandlers = (socket) => {
         role: membership.role
       })
     } catch (error) {
-      return respond({ ok: false, error: 'Could not join the family room' })
+      return respond({ ok: false, error: 'เข้าร่วมห้องสนทนาไม่สำเร็จ' })
     }
   })
 
   socket.on('leave_family_room', ({ householdId } = {}, ack) => {
     const respond = typeof ack === 'function' ? ack : () => {}
-    if (!householdId) return respond({ ok: false, error: 'householdId is required' })
+    if (!householdId) return respond({ ok: false, error: 'กรุณาระบุกลุ่มบ้าน' })
 
     socket.data.memberships.delete(String(householdId))
     socket.leave(householdRoom(householdId))
@@ -120,20 +120,20 @@ const registerHandlers = (socket) => {
 
     const membership = socket.data.memberships.get(String(householdId))
     if (!membership) {
-      return respond({ ok: false, error: 'Join the family room first' })
+      return respond({ ok: false, error: 'กรุณาเข้าร่วมห้องสนทนาก่อนส่งข้อความ' })
     }
     if (typeof text !== 'string' || text.trim().length === 0) {
-      return respond({ ok: false, error: 'text is required' })
+      return respond({ ok: false, error: 'กรุณากรอกข้อความ' })
     }
     if (text.trim().length > 2000) {
-      return respond({ ok: false, error: 'text is too long' })
+      return respond({ ok: false, error: 'ข้อความยาวเกินไป' })
     }
 
     try {
       const message = await messageService.sendMessage(householdId, membership, { text: text.trim() })
       return respond({ ok: true, message: message.toJSON() })
     } catch (error) {
-      return respond({ ok: false, error: error.message || 'Could not send the message' })
+      return respond({ ok: false, error: error.message || 'ส่งข้อความไม่สำเร็จ' })
     }
   })
 

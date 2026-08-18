@@ -12,7 +12,7 @@ const createError = (message, statusCode) => {
 // Socket.IO path reaches sendMessage without passing through Express.
 const assertCanSend = (membership) => {
   if (membership.role === 'viewer') {
-    throw createError('Viewers cannot send messages', 403)
+    throw createError('ผู้ใช้สิทธิ์ดูอย่างเดียวส่งข้อความไม่ได้', 403)
   }
 }
 
@@ -54,7 +54,7 @@ const sendMessage = async (householdId, membership, { text }) => {
 const deleteMessage = async (id, householdId, membership) => {
   const message = await repository.findById(id)
   if (!message || String(message.householdId) !== String(householdId) || message.isDeleted) {
-    throw createError('Message not found', 404)
+    throw createError('ไม่พบข้อความนี้', 404)
   }
 
   // Anyone may remove their own message; owner/caregiver may remove any, so
@@ -62,7 +62,7 @@ const deleteMessage = async (id, householdId, membership) => {
   const isSender = String(message.senderMemberId._id || message.senderMemberId) === String(membership._id)
   const isPrivileged = membership.role === 'owner' || membership.role === 'caregiver'
   if (!isSender && !isPrivileged) {
-    throw createError('You do not have permission to delete this message', 403)
+    throw createError('คุณไม่มีสิทธิ์ลบข้อความนี้', 403)
   }
 
   const deleted = await repository.softDeleteById(id)

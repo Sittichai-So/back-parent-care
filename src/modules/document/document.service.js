@@ -9,7 +9,7 @@ const createError = (message, statusCode) => {
 const findOwned = async (id, householdId) => {
   const document = await repository.findById(id)
   if (!document || String(document.householdId) !== String(householdId)) {
-    throw createError('Document not found', 404)
+    throw createError('ไม่พบเอกสารนี้', 404)
   }
   return document
 }

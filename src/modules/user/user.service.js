@@ -25,7 +25,7 @@ const lookupUser = async ({ code, email }) => {
     : await authRepository.findByEmail(email.trim().toLowerCase())
 
   if (!user || !user.isActive) {
-    throw createError('User not found', 404)
+    throw createError('ไม่พบผู้ใช้นี้', 404)
   }
 
   return { _id: user._id, name: user.name, userCode: user.userCode }

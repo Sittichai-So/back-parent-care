@@ -26,7 +26,7 @@ const lookupUser = async (req, res, next) => {
   try {
     const { error, value } = lookupUserSchema.validate(req.query, { abortEarly: false })
     if (error) {
-      return res.status(400).json(errorResponse('Validation failed', error.details.map((item) => item.message)))
+      return res.status(400).json(errorResponse('ข้อมูลที่กรอกไม่ถูกต้อง', error.details.map((item) => item.message)))
     }
 
     const data = await service.lookupUser(value)

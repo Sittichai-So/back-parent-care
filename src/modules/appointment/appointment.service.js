@@ -1,5 +1,6 @@
 const repository = require('./appointment.repository')
 const timelineService = require('../timeline/timeline.service')
+const { resolveWriteMemberId, assertOwnRecordOrPrivileged } = require('../../utils/household-scope')
 
 const createError = (message, statusCode) => {
   const error = new Error(message)
@@ -10,7 +11,7 @@ const createError = (message, statusCode) => {
 const findOwned = async (id, householdId) => {
   const appointment = await repository.findById(id)
   if (!appointment || String(appointment.householdId) !== String(householdId)) {
-    throw createError('Appointment not found', 404)
+    throw createError('ไม่พบนัดหมายนี้', 404)
   }
   return appointment
 }
@@ -26,7 +27,10 @@ const getById = async (id, householdId) => {
 }
 
 const createOne = async (householdId, membership, data) => {
-  const appointment = await repository.create({ ...data, householdId, createdByMemberId: membership._id })
+  // owner/caregiver: memberId required, may target anyone. elder: only
+  // themself (an omitted memberId defaults to self; anyone else is rejected).
+  const memberId = resolveWriteMemberId(membership, data.memberId)
+  const appointment = await repository.create({ ...data, memberId, householdId, createdByMemberId: membership._id })
 
   await timelineService.recordEvent({
     householdId,
@@ -41,8 +45,9 @@ const createOne = async (householdId, membership, data) => {
   return appointment
 }
 
-const updateOne = async (id, householdId, data) => {
-  await findOwned(id, householdId)
+const updateOne = async (id, householdId, membership, data) => {
+  const existing = await findOwned(id, householdId)
+  assertOwnRecordOrPrivileged(membership, existing.memberId)
   return repository.updateById(id, data)
 }
 

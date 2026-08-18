@@ -11,7 +11,7 @@ const createError = (message, statusCode) => {
 const findOwned = async (id, householdId) => {
   const task = await repository.findById(id)
   if (!task || String(task.householdId) !== String(householdId)) {
-    throw createError('Task not found', 404)
+    throw createError('ไม่พบงานนี้', 404)
   }
   return task
 }

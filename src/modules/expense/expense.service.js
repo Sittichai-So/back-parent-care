@@ -20,7 +20,7 @@ const CATEGORY_LABELS = {
 const findOwned = async (id, householdId) => {
   const expense = await repository.findById(id)
   if (!expense || String(expense.householdId) !== String(householdId)) {
-    throw createError('Expense not found', 404)
+    throw createError('ไม่พบรายการค่าใช้จ่ายนี้', 404)
   }
   return expense
 }
@@ -35,12 +35,12 @@ const monthRange = (month) => {
   if (month) {
     const match = /^(\d{4})-(\d{2})$/.exec(String(month))
     if (!match) {
-      throw createError('month must be in YYYY-MM format', 400)
+      throw createError('รูปแบบเดือนไม่ถูกต้อง กรุณาใช้รูปแบบ YYYY-MM', 400)
     }
     year = Number(match[1])
     monthIndex = Number(match[2]) - 1
     if (monthIndex < 0 || monthIndex > 11) {
-      throw createError('month must be in YYYY-MM format', 400)
+      throw createError('รูปแบบเดือนไม่ถูกต้อง กรุณาใช้รูปแบบ YYYY-MM', 400)
     }
   }
 

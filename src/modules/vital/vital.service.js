@@ -11,7 +11,7 @@ const createError = (message, statusCode) => {
 const findOwned = async (id, householdId) => {
   const vital = await repository.findById(id)
   if (!vital || String(vital.householdId) !== String(householdId)) {
-    throw createError('Vital record not found', 404)
+    throw createError('ไม่พบข้อมูลสุขภาพนี้', 404)
   }
   return vital
 }
@@ -19,10 +19,10 @@ const findOwned = async (id, householdId) => {
 const validateReadings = ({ systolic, diastolic, pulse, sugar, weight }) => {
   const hasBp = systolic != null || diastolic != null
   if (hasBp && (systolic == null || diastolic == null)) {
-    throw createError('Blood pressure needs both a systolic and diastolic value', 400)
+    throw createError('ต้องกรอกค่าความดันทั้งตัวบนและตัวล่าง', 400)
   }
   if (systolic == null && pulse == null && sugar == null && weight == null) {
-    throw createError('At least one reading (blood pressure, pulse, sugar, or weight) is required', 400)
+    throw createError('ต้องกรอกอย่างน้อยหนึ่งค่า (ความดัน ชีพจร น้ำตาล หรือน้ำหนัก)', 400)
   }
 }
 

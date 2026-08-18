@@ -12,7 +12,7 @@ const householdMiddleware = async (req, res, next) => {
 
     const household = await Household.findById(householdId)
     if (!household) {
-      return res.status(404).json(errorResponse('Household not found'))
+      return res.status(404).json(errorResponse('ไม่พบกลุ่มบ้านนี้'))
     }
 
     const membership = await HouseholdMember.findOne({
@@ -26,7 +26,7 @@ const householdMiddleware = async (req, res, next) => {
       membershipState: { $ne: 'pending' }
     })
     if (!membership) {
-      return res.status(403).json(errorResponse('You are not a member of this household'))
+      return res.status(403).json(errorResponse('คุณไม่ได้เป็นสมาชิกของกลุ่มบ้านนี้'))
     }
 
     req.household = household

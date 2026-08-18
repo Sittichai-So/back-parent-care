@@ -25,23 +25,23 @@ const getById = async (id) => {
 const update = async (id, data, requesterMembership) => {
   const target = await repository.findById(id)
   if (!target) {
-    throw createError('Member not found', 404)
+    throw createError('ไม่พบสมาชิกนี้', 404)
   }
 
   if (data.role && requesterMembership.role !== 'owner') {
-    throw createError('Only the owner can change member roles', 403)
+    throw createError('เฉพาะเจ้าของบ้านเท่านั้นที่เปลี่ยนบทบาทสมาชิกได้', 403)
   }
 
   // A member profile with no linked account can never hold owner/caregiver —
   // those roles require someone who can log in and act for themself.
   if (data.role && !target.userId && ['owner', 'caregiver'].includes(data.role)) {
-    throw createError('A member without a linked account cannot be owner or caregiver', 400)
+    throw createError('สมาชิกที่ไม่มีบัญชีผู้ใช้เป็นเจ้าของบ้านหรือผู้ดูแลไม่ได้', 400)
   }
 
   const isSelf = String(requesterMembership._id) === String(id)
   const isPrivileged = requesterMembership.role === 'owner' || requesterMembership.role === 'caregiver'
   if (!isSelf && !isPrivileged) {
-    throw createError('You do not have permission to update this member', 403)
+    throw createError('คุณไม่มีสิทธิ์แก้ไขข้อมูลสมาชิกนี้', 403)
   }
 
   return repository.updateById(id, data)
@@ -49,15 +49,15 @@ const update = async (id, data, requesterMembership) => {
 
 const remove = async (id, requesterMembership) => {
   if (requesterMembership.role !== 'owner') {
-    throw createError('Only the owner can remove members', 403)
+    throw createError('เฉพาะเจ้าของบ้านเท่านั้นที่ลบสมาชิกได้', 403)
   }
 
   const target = await repository.findById(id)
   if (!target) {
-    throw createError('Member not found', 404)
+    throw createError('ไม่พบสมาชิกนี้', 404)
   }
   if (target.role === 'owner') {
-    throw createError('The household owner cannot be removed', 400)
+    throw createError('ไม่สามารถลบเจ้าของบ้านออกจากกลุ่มได้', 400)
   }
 
   return repository.updateById(id, { isActive: false })
@@ -65,7 +65,7 @@ const remove = async (id, requesterMembership) => {
 
 const checkIn = async (id, requesterMembership) => {
   if (String(requesterMembership._id) !== String(id)) {
-    throw createError('You can only check in for yourself', 403)
+    throw createError('ตรวจสอบสถานะได้เฉพาะของตัวเองเท่านั้น', 403)
   }
 
   const now = new Date()
@@ -106,15 +106,15 @@ const createManagedMember = async (householdId, data, requesterMembership) => {
 const inviteExistingUser = async (householdId, data, requesterMembership) => {
   const targetUser = await authRepository.findById(data.userId)
   if (!targetUser || !targetUser.isActive) {
-    throw createError('User not found', 404)
+    throw createError('ไม่พบผู้ใช้นี้', 404)
   }
 
   const existing = await repository.findOne({ householdId, userId: data.userId })
   if (existing) {
     if (existing.membershipState === 'pending') {
-      throw createError('An invite is already pending for this user', 400)
+      throw createError('มีคำเชิญค้างอยู่สำหรับผู้ใช้นี้แล้ว', 400)
     }
-    throw createError('This user is already a member of this household', 400)
+    throw createError('ผู้ใช้นี้เป็นสมาชิกของกลุ่มบ้านนี้อยู่แล้ว', 400)
   }
 
   return repository.create({
@@ -143,13 +143,13 @@ const listPendingInvitesForUser = async (userId) => {
 // everything else for other members.
 const assertRespondingToOwnInvite = (target, householdId, requesterUserId) => {
   if (!target || String(target.householdId) !== String(householdId)) {
-    throw createError('Invite not found', 404)
+    throw createError('ไม่พบคำเชิญนี้', 404)
   }
   if (!target.userId || String(target.userId) !== String(requesterUserId)) {
-    throw createError('You do not have permission to respond to this invite', 403)
+    throw createError('คุณไม่มีสิทธิ์ตอบรับคำเชิญนี้', 403)
   }
   if (target.membershipState !== 'pending') {
-    throw createError('This invite is no longer pending', 400)
+    throw createError('คำเชิญนี้ถูกตอบรับหรือปฏิเสธไปแล้ว', 400)
   }
 }
 
@@ -184,10 +184,10 @@ const declineInvite = async (householdId, memberId, requesterUserId) => {
 const generateClaimCodeForMember = async (memberId, requesterMembership) => {
   const target = await repository.findById(memberId)
   if (!target) {
-    throw createError('Member not found', 404)
+    throw createError('ไม่พบสมาชิกนี้', 404)
   }
   if (target.userId) {
-    throw createError('This member already has a linked account', 400)
+    throw createError('สมาชิกนี้มีบัญชีผู้ใช้เชื่อมอยู่แล้ว', 400)
   }
 
   const claimCode = generateClaimCode()
@@ -198,20 +198,20 @@ const generateClaimCodeForMember = async (memberId, requesterMembership) => {
 const claimMember = async (requesterUserId, claimCode) => {
   const target = await repository.findByClaimCode(claimCode.trim().toUpperCase())
   if (!target) {
-    throw createError('Invalid claim code', 404)
+    throw createError('รหัสผูกบัญชีไม่ถูกต้อง', 404)
   }
   // Defensive: claimCode is cleared the moment a member is claimed, so this
   // should be unreachable, but never let a second claim overwrite the link.
   if (target.userId) {
-    throw createError('This member already has a linked account', 400)
+    throw createError('สมาชิกนี้มีบัญชีผู้ใช้เชื่อมอยู่แล้ว', 400)
   }
   if (!target.claimCodeExpiresAt || target.claimCodeExpiresAt < new Date()) {
-    throw createError('This claim code has expired', 400)
+    throw createError('รหัสผูกบัญชีนี้หมดอายุแล้ว', 400)
   }
 
   const existingMembership = await repository.findOne({ householdId: target.householdId, userId: requesterUserId })
   if (existingMembership) {
-    throw createError('You are already a member of this household', 400)
+    throw createError('คุณเป็นสมาชิกของกลุ่มบ้านนี้อยู่แล้ว', 400)
   }
 
   return repository.updateById(target._id, {

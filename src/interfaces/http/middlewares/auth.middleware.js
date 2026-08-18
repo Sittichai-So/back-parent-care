@@ -6,7 +6,7 @@ const authMiddleware = (req, res, next) => {
   const token = authorization.startsWith('Bearer ') ? authorization.split(' ')[1] : null
 
   if (!token) {
-    return res.status(401).json(errorResponse('Authentication required'))
+    return res.status(401).json(errorResponse('กรุณาเข้าสู่ระบบก่อนใช้งาน'))
   }
 
   try {
@@ -14,7 +14,7 @@ const authMiddleware = (req, res, next) => {
     req.user = decoded
     next()
   } catch (error) {
-    return res.status(401).json(errorResponse('Invalid or expired token'))
+    return res.status(401).json(errorResponse('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'))
   }
 }
 

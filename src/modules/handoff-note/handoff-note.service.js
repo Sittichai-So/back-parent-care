@@ -38,13 +38,13 @@ const createOne = async (householdId, membership, { text }) => {
 const deleteOne = async (id, householdId, membership) => {
   const note = await repository.findById(id)
   if (!note || String(note.householdId) !== String(householdId)) {
-    throw createError('Handoff note not found', 404)
+    throw createError('ไม่พบบันทึกส่งต่อเวรนี้', 404)
   }
 
   const isAuthor = String(note.authorMemberId._id || note.authorMemberId) === String(membership._id)
   const isPrivileged = membership.role === 'owner' || membership.role === 'caregiver'
   if (!isAuthor && !isPrivileged) {
-    throw createError('You do not have permission to delete this note', 403)
+    throw createError('คุณไม่มีสิทธิ์ลบบันทึกนี้', 403)
   }
 
   return repository.deleteById(id)

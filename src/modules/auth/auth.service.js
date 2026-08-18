@@ -10,7 +10,7 @@ const generateUniqueUserCode = async () => {
     const existing = await repository.findByUserCode(code)
     if (!existing) return code
   }
-  const error = new Error('Could not generate a unique user code, please try again')
+  const error = new Error('ไม่สามารถสร้างรหัสประจำตัวได้ กรุณาลองใหม่อีกครั้ง')
   error.statusCode = 500
   throw error
 }
@@ -18,7 +18,7 @@ const generateUniqueUserCode = async () => {
 const register = async (data) => {
   const existingUser = await repository.findByEmail(data.email)
   if (existingUser) {
-    const error = new Error('Email is already registered')
+    const error = new Error('อีเมลนี้ถูกใช้ลงทะเบียนแล้ว')
     error.statusCode = 400
     throw error
   }
@@ -42,14 +42,14 @@ const register = async (data) => {
 const login = async ({ email, password }) => {
   const user = await repository.findByEmailWithPassword(email)
   if (!user) {
-    const error = new Error('Invalid credentials')
+    const error = new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
     error.statusCode = 401
     throw error
   }
 
   const validPassword = await bcrypt.compare(password, user.password)
   if (!validPassword) {
-    const error = new Error('Invalid credentials')
+    const error = new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
     error.statusCode = 401
     throw error
   }

@@ -15,7 +15,7 @@ const generateUniqueInviteCode = async () => {
     const existing = await householdRepository.findByInviteCode(code)
     if (!existing) return code
   }
-  throw createError('Could not generate a unique invite code, please try again', 500)
+  throw createError('ไม่สามารถสร้างรหัสเชิญได้ กรุณาลองใหม่อีกครั้ง', 500)
 }
 
 /**
@@ -60,12 +60,12 @@ const create = async (userId, { name, displayName, relation, kind }) => {
 const join = async (userId, { inviteCode, role, displayName, relation }) => {
   const household = await householdRepository.findByInviteCode(inviteCode.trim().toUpperCase())
   if (!household) {
-    throw createError('Invalid invite code', 404)
+    throw createError('รหัสเชิญไม่ถูกต้อง', 404)
   }
 
   const existing = await householdMemberRepository.findOne({ householdId: household._id, userId })
   if (existing) {
-    throw createError('You are already a member of this household', 400)
+    throw createError('คุณเป็นสมาชิกของกลุ่มบ้านนี้อยู่แล้ว', 400)
   }
 
   const membership = await householdMemberRepository.create({

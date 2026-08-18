@@ -3,7 +3,7 @@ const { successResponse } = require('../../utils/response')
 const uploadFile = async (req, res, next) => {
   try {
     if (!req.file) {
-      const error = new Error('File is required')
+      const error = new Error('กรุณาแนบไฟล์')
       error.statusCode = 400
       throw error
     }

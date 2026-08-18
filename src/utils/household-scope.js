@@ -23,19 +23,19 @@ const createError = (message, statusCode) => {
  */
 const resolveWriteMemberId = (membership, requestedMemberId) => {
   if (membership.role === 'viewer') {
-    throw createError('Viewers cannot make changes', 403)
+    throw createError('ผู้ใช้สิทธิ์ดูอย่างเดียวไม่สามารถแก้ไขข้อมูลได้', 403)
   }
 
   if (membership.role === 'owner' || membership.role === 'caregiver') {
     if (!requestedMemberId) {
-      throw createError('memberId is required', 400)
+      throw createError('กรุณาระบุสมาชิกที่ต้องการบันทึกข้อมูลให้', 400)
     }
     return String(requestedMemberId)
   }
 
   // elder
   if (requestedMemberId && String(requestedMemberId) !== String(membership._id)) {
-    throw createError('Elders can only act on their own records', 403)
+    throw createError('ผู้สูงอายุบันทึกข้อมูลได้เฉพาะของตัวเองเท่านั้น', 403)
   }
   return String(membership._id)
 }
@@ -47,7 +47,7 @@ const resolveWriteMemberId = (membership, requestedMemberId) => {
 const assertOwnRecordOrPrivileged = (membership, targetMemberId) => {
   if (membership.role === 'owner' || membership.role === 'caregiver') return
   if (membership.role === 'elder' && targetMemberId && String(targetMemberId) === String(membership._id)) return
-  throw createError('You do not have permission to modify this record', 403)
+  throw createError('คุณไม่มีสิทธิ์แก้ไขรายการนี้', 403)
 }
 
 module.exports = {

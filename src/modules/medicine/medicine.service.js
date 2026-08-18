@@ -1,7 +1,7 @@
 const repository = require('./medicine.repository')
 const medicationLogRepository = require('../medication-log/medication-log.repository')
 const timelineService = require('../timeline/timeline.service')
-const { resolveWriteMemberId } = require('../../utils/household-scope')
+const { resolveWriteMemberId, assertOwnRecordOrPrivileged } = require('../../utils/household-scope')
 
 const createError = (message, statusCode) => {
   const error = new Error(message)
@@ -12,7 +12,7 @@ const createError = (message, statusCode) => {
 const findOwned = async (id, householdId) => {
   const medicine = await repository.findById(id)
   if (!medicine || String(medicine.householdId) !== String(householdId)) {
-    throw createError('Medicine not found', 404)
+    throw createError('ไม่พบรายการยานี้', 404)
   }
   return medicine
 }
@@ -43,12 +43,16 @@ const getById = async (id, householdId) => {
 }
 
 const createOne = async (householdId, membership, data) => {
-  const medicine = await repository.create({ ...data, householdId, createdByMemberId: membership._id })
+  // owner/caregiver: memberId required, may target anyone. elder: only
+  // themself (an omitted memberId defaults to self; anyone else is rejected).
+  const memberId = resolveWriteMemberId(membership, data.memberId)
+  const medicine = await repository.create({ ...data, memberId, householdId, createdByMemberId: membership._id })
   return withLastTaken(medicine)
 }
 
-const updateOne = async (id, householdId, data) => {
-  await findOwned(id, householdId)
+const updateOne = async (id, householdId, membership, data) => {
+  const existing = await findOwned(id, householdId)
+  assertOwnRecordOrPrivileged(membership, existing.memberId)
   return withLastTaken(await repository.updateById(id, data))
 }
 

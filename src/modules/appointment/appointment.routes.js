@@ -8,9 +8,11 @@ const { appointmentSchema } = require('./appointment.schema')
 const router = express.Router({ mergeParams: true })
 
 router.get('/', controller.getAppointments)
-router.post('/', requireHouseholdRole('owner', 'caregiver'), validationMiddleware(appointmentSchema), controller.createAppointment)
+// Not role-restricted — elders may book/edit their own appointments; appointment.service.js narrows to "self only".
+router.post('/', validationMiddleware(appointmentSchema), controller.createAppointment)
 router.get('/:appointmentId', controller.getAppointment)
-router.put('/:appointmentId', requireHouseholdRole('owner', 'caregiver'), validationMiddleware(appointmentSchema), controller.updateAppointment)
+router.put('/:appointmentId', validationMiddleware(appointmentSchema), controller.updateAppointment)
+// Deletion stays above elders' self-write scope, same as vitals/medicines.
 router.delete('/:appointmentId', requireHouseholdRole('owner', 'caregiver'), controller.deleteAppointment)
 
 module.exports = router

@@ -9,14 +9,15 @@ const { medicationLogCreateSchema } = require('../medication-log/medication-log.
 const router = express.Router({ mergeParams: true })
 
 router.get('/', controller.getMedicines)
-router.post('/', requireHouseholdRole('owner', 'caregiver'), validationMiddleware(medicineSchema), controller.createMedicine)
+// Not role-restricted — elders may add/edit their own medicines; medicine.service.js narrows to "self only".
+router.post('/', validationMiddleware(medicineSchema), controller.createMedicine)
 router.get('/:medicineId', controller.getMedicine)
-router.put('/:medicineId', requireHouseholdRole('owner', 'caregiver'), validationMiddleware(medicineSchema), controller.updateMedicine)
+router.put('/:medicineId', validationMiddleware(medicineSchema), controller.updateMedicine)
+// Deletion stays above elders' self-write scope, same as vitals.
 router.delete('/:medicineId', requireHouseholdRole('owner', 'caregiver'), controller.deleteMedicine)
 
 router.get('/:medicineId/logs', controller.getLogs)
-// Not role-restricted to owner/caregiver here — elders may log their own
-// doses; medicine.service.js#logDose enforces the "self only" narrowing.
+// Not role-restricted — elders may log their own doses; logDose narrows to "self only".
 router.post('/:medicineId/logs', validationMiddleware(medicationLogCreateSchema), controller.logDose)
 
 module.exports = router

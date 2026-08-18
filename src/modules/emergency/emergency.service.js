@@ -12,13 +12,13 @@ const createError = (message, statusCode) => {
 
 const trigger = async (householdId, membership, { forMemberId, message, location }) => {
   if (membership.role === 'viewer') {
-    throw createError('Viewers cannot trigger an emergency alert', 403)
+    throw createError('ผู้ใช้สิทธิ์ดูอย่างเดียวแจ้งเหตุฉุกเฉินไม่ได้', 403)
   }
 
   const targetMemberId = resolveWriteMemberId(membership, forMemberId || String(membership._id))
   const targetMember = await householdMemberRepository.findById(targetMemberId)
   if (!targetMember || String(targetMember.householdId) !== String(householdId)) {
-    throw createError('Member not found', 404)
+    throw createError('ไม่พบสมาชิกนี้', 404)
   }
 
   const alert = await repository.create({
@@ -73,13 +73,13 @@ const listRecent = async (householdId, { limit = 20 } = {}) => {
 const resolve = async (id, householdId, membership) => {
   const alert = await repository.findById(id)
   if (!alert || String(alert.householdId) !== String(householdId)) {
-    throw createError('Alert not found', 404)
+    throw createError('ไม่พบการแจ้งเหตุนี้', 404)
   }
 
   const isPrivileged = membership.role === 'owner' || membership.role === 'caregiver'
   const isTriggerer = String(alert.triggeredByMemberId) === String(membership._id)
   if (!isPrivileged && !isTriggerer) {
-    throw createError('You do not have permission to resolve this alert', 403)
+    throw createError('คุณไม่มีสิทธิ์ปิดการแจ้งเหตุนี้', 403)
   }
 
   return repository.updateById(id, { status: 'resolved' })

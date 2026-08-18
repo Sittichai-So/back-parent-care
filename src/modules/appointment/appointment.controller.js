@@ -30,7 +30,7 @@ const createAppointment = async (req, res, next) => {
 
 const updateAppointment = async (req, res, next) => {
   try {
-    const data = await service.updateOne(req.params.appointmentId, req.household._id, req.body)
+    const data = await service.updateOne(req.params.appointmentId, req.household._id, req.membership, req.body)
     res.json(successResponse(data, 'Updated successfully'))
   } catch (error) {
     next(error)
