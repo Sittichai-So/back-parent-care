@@ -12,6 +12,10 @@ const create = (data) => HouseholdMember.create(data)
 
 const updateById = (id, data) => HouseholdMember.findByIdAndUpdate(id, data, { new: true, runValidators: true })
 
+const updateMany = (filter, data) => HouseholdMember.updateMany(filter, data)
+
+const countDocuments = (filter) => HouseholdMember.countDocuments(filter)
+
 const deleteById = (id) => HouseholdMember.findByIdAndDelete(id)
 
 module.exports = {
@@ -21,5 +25,7 @@ module.exports = {
   findByClaimCode,
   create,
   updateById,
+  updateMany,
+  countDocuments,
   deleteById
 }

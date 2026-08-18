@@ -42,10 +42,15 @@ const trigger = async (householdId, membership, { forMemberId, message, location
   // Notify every other active member — the one explicit "send an in-app
   // notification" case in this app, deliberately not done for routine
   // medication/appointment/vitals/check-in activity (timeline covers those).
+  // Members with no linked account (userId: null — see
+  // household-member.service.js#createManagedMember) have nowhere to
+  // receive a notification and would fail Notification's required userId
+  // validation, so they're skipped here rather than left to reject the
+  // whole Promise.all and mask an otherwise-successful trigger.
   const members = await householdMemberRepository.findAll({ householdId, isActive: true })
   await Promise.all(
     members
-      .filter((member) => String(member._id) !== String(membership._id))
+      .filter((member) => String(member._id) !== String(membership._id) && member.userId)
       .map((member) =>
         notificationService.create({
           userId: member.userId,

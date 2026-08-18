@@ -30,6 +30,14 @@ const medicationLogSchema = new mongoose.Schema(
       type: String,
       default: null
     },
+    // When the confirmation photo was *shot*, as distinct from takenAt (when
+    // the dose was confirmed). The design's review/done card shows both as
+    // separate rows ("เวลาถ่ายภาพ" above "ผู้บันทึก"), and they genuinely
+    // differ — the mock's seeded mom dose is shot 08:30, confirmed 08:32.
+    photoTakenAt: {
+      type: Date,
+      default: null
+    },
     note: {
       type: String,
       default: null

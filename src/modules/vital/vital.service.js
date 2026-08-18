@@ -16,13 +16,13 @@ const findOwned = async (id, householdId) => {
   return vital
 }
 
-const validateReadings = ({ systolic, diastolic, sugar, weight }) => {
+const validateReadings = ({ systolic, diastolic, pulse, sugar, weight }) => {
   const hasBp = systolic != null || diastolic != null
   if (hasBp && (systolic == null || diastolic == null)) {
     throw createError('Blood pressure needs both a systolic and diastolic value', 400)
   }
-  if (systolic == null && sugar == null && weight == null) {
-    throw createError('At least one reading (blood pressure, sugar, or weight) is required', 400)
+  if (systolic == null && pulse == null && sugar == null && weight == null) {
+    throw createError('At least one reading (blood pressure, pulse, sugar, or weight) is required', 400)
   }
 }
 
@@ -50,6 +50,7 @@ const createOne = async (householdId, membership, data) => {
     title: 'บันทึกสุขภาพใหม่',
     detail: [
       vital.systolic && vital.diastolic ? `ความดัน ${vital.systolic}/${vital.diastolic}` : null,
+      vital.pulse ? `ชีพจร ${vital.pulse}` : null,
       vital.sugar ? `น้ำตาล ${vital.sugar}` : null,
       vital.weight ? `น้ำหนัก ${vital.weight} กก.` : null
     ]
@@ -64,7 +65,7 @@ const createOne = async (householdId, membership, data) => {
 const updateOne = async (id, householdId, membership, data) => {
   const existing = await findOwned(id, householdId)
   assertOwnRecordOrPrivileged(membership, existing.memberId)
-  if (Object.keys(data).some((key) => ['systolic', 'diastolic', 'sugar', 'weight'].includes(key))) {
+  if (Object.keys(data).some((key) => ['systolic', 'diastolic', 'pulse', 'sugar', 'weight'].includes(key))) {
     validateReadings({ ...existing.toObject(), ...data })
   }
   return repository.updateById(id, data)

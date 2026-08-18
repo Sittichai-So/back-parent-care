@@ -26,6 +26,12 @@ const vitalSchema = new mongoose.Schema(
       type: Number,
       default: null
     },
+    // Beats per minute. The design's member-detail card shows three vitals
+    // tiles — ความดัน, ชีพจร, น้ำตาล — and pulse had no field of its own.
+    pulse: {
+      type: Number,
+      default: null
+    },
     sugar: {
       type: Number,
       default: null

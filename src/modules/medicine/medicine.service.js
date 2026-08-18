@@ -69,6 +69,7 @@ const logDose = async (medicineId, householdId, membership, data) => {
     status: data.status,
     takenAt: data.takenAt,
     image: data.image,
+    photoTakenAt: data.photoTakenAt,
     note: data.note,
     medicineId,
     memberId,

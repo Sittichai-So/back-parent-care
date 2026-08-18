@@ -86,6 +86,16 @@ const householdMemberSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
+    // The design's "กลุ่มเริ่มต้น" — which household opens on sign-in. Lives
+    // on the membership, not on Household, because "default" is a per-user
+    // choice: two people in the same household can each have a different
+    // default. Only meaningful where userId is set (a userId-less managed
+    // profile never signs in), and the service keeps at most one true per
+    // user.
+    isDefault: {
+      type: Boolean,
+      default: false
+    },
     // Soft-remove instead of hard delete, so historical Medicine/Appointment/
     // Vital/Task rows keep a valid memberId reference even after someone
     // leaves the household.

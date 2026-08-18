@@ -10,6 +10,7 @@ const vitalCreateSchema = Joi.object({
   recordedAt: Joi.date().optional(),
   systolic: Joi.number().optional().allow(null),
   diastolic: Joi.number().optional().allow(null),
+  pulse: Joi.number().optional().allow(null),
   sugar: Joi.number().optional().allow(null),
   weight: Joi.number().optional().allow(null),
   note: Joi.string().optional().allow('', null)
@@ -19,6 +20,7 @@ const vitalUpdateSchema = Joi.object({
   recordedAt: Joi.date().optional(),
   systolic: Joi.number().optional().allow(null),
   diastolic: Joi.number().optional().allow(null),
+  pulse: Joi.number().optional().allow(null),
   sugar: Joi.number().optional().allow(null),
   weight: Joi.number().optional().allow(null),
   note: Joi.string().optional().allow('', null)

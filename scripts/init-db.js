@@ -118,6 +118,8 @@ ensureCollection(
     properties: {
       name: { bsonType: 'string' },
       ownerUserId: objectId,
+      // Group kind behind the switcher's icon + "<label> · <n> คน" meta line.
+      kind: { enum: ['parents', 'partner', 'relatives', 'other'] },
       inviteCode: { bsonType: 'string' },
       inviteCodeRotatedAt: { bsonType: 'date' }
     }
@@ -151,6 +153,9 @@ ensureCollection(
       createdByMemberId: objectIdOrNull,
       claimCode: stringOrNull,
       claimCodeExpiresAt: dateOrNull,
+      // Which household opens on sign-in, per user — see the model for why
+      // this lives on the membership rather than on Household.
+      isDefault: bool,
       isActive: bool,
       joinedAt: { bsonType: 'date' }
     }
@@ -212,6 +217,9 @@ ensureCollection(
       status: { enum: ['taken', 'missed', 'skipped'] },
       takenAt: { bsonType: 'date' },
       image: stringOrNull,
+      // When the confirmation photo was shot, as opposed to takenAt (when the
+      // dose was confirmed) — shown as separate rows in the confirm flow.
+      photoTakenAt: dateOrNull,
       note: stringOrNull,
       createdByUserId: objectId,
       createdByMemberId: objectId
@@ -265,6 +273,9 @@ ensureCollection(
       recordedAt: { bsonType: 'date' },
       systolic: numberOrNull,
       diastolic: numberOrNull,
+      // Beats per minute — the design's member-detail card shows a ชีพจร tile
+      // alongside ความดัน and น้ำตาล.
+      pulse: numberOrNull,
       sugar: numberOrNull,
       weight: numberOrNull,
       note: stringOrNull,
@@ -367,6 +378,98 @@ ensureCollection(
     }
   },
   [{ keys: { userId: 1, isRead: 1 } }, { keys: { householdId: 1, createdAt: -1 } }]
+)
+
+// ---------------------------------------------------------------------
+// messages (src/modules/message/message.model.js) — family group chat
+// ---------------------------------------------------------------------
+ensureCollection(
+  db,
+  'messages',
+  {
+    bsonType: 'object',
+    required: ['householdId', 'senderMemberId', 'text'],
+    properties: {
+      householdId: objectId,
+      senderMemberId: objectId,
+      // Null only where the sender is a member profile with no linked
+      // account — see message.model.js.
+      senderUserId: objectIdOrNull,
+      text: { bsonType: 'string' },
+      isDeleted: bool
+    }
+  },
+  [{ keys: { householdId: 1, createdAt: -1 } }]
+)
+
+// ---------------------------------------------------------------------
+// handoffnotes (src/modules/handoff-note/handoff-note.model.js)
+// ---------------------------------------------------------------------
+ensureCollection(
+  db,
+  'handoffnotes',
+  {
+    bsonType: 'object',
+    required: ['householdId', 'authorMemberId', 'text'],
+    properties: {
+      householdId: objectId,
+      authorMemberId: objectId,
+      text: { bsonType: 'string' }
+    }
+  },
+  [{ keys: { householdId: 1, createdAt: -1 } }]
+)
+
+// ---------------------------------------------------------------------
+// documents (src/modules/document/document.model.js)
+// ---------------------------------------------------------------------
+ensureCollection(
+  db,
+  'documents',
+  {
+    bsonType: 'object',
+    required: ['householdId', 'name', 'kind', 'createdByMemberId'],
+    properties: {
+      householdId: objectId,
+      // Null for paperwork that belongs to the household rather than one
+      // person (e.g. the group insurance policy).
+      memberId: objectIdOrNull,
+      name: { bsonType: 'string' },
+      kind: { enum: ['ID', 'สิทธิ์', 'ประกัน', 'PDF'] },
+      meta: { bsonType: 'string' },
+      referenceNumber: stringOrNull,
+      issuedAt: dateOrNull,
+      expiresAt: dateOrNull,
+      fileUrl: stringOrNull,
+      createdByMemberId: objectId
+    }
+  },
+  [{ keys: { householdId: 1, memberId: 1 } }, { keys: { householdId: 1, kind: 1 } }]
+)
+
+// ---------------------------------------------------------------------
+// expenses (src/modules/expense/expense.model.js)
+// ---------------------------------------------------------------------
+ensureCollection(
+  db,
+  'expenses',
+  {
+    bsonType: 'object',
+    required: ['householdId', 'title', 'amount', 'createdByMemberId'],
+    properties: {
+      householdId: objectId,
+      memberId: objectIdOrNull,
+      title: { bsonType: 'string' },
+      category: { enum: ['medicine', 'treatment', 'transport', 'other'] },
+      amount: { bsonType: ['double', 'int', 'long'], minimum: 0 },
+      // The day the money was spent — the monthly bucket is computed from
+      // this, not from createdAt.
+      spentAt: { bsonType: 'date' },
+      note: stringOrNull,
+      createdByMemberId: objectId
+    }
+  },
+  [{ keys: { householdId: 1, spentAt: -1 } }, { keys: { householdId: 1, category: 1 } }]
 )
 
 // ---------------------------------------------------------------------

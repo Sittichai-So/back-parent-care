@@ -14,6 +14,10 @@ const appointmentRoutes = require('../appointment/appointment.routes')
 const vitalRoutes = require('../vital/vital.routes')
 const taskRoutes = require('../task/task.routes')
 const emergencyRoutes = require('../emergency/emergency.routes')
+const messageRoutes = require('../message/message.routes')
+const handoffNoteRoutes = require('../handoff-note/handoff-note.routes')
+const documentRoutes = require('../document/document.routes')
+const expenseRoutes = require('../expense/expense.routes')
 
 const router = express.Router()
 
@@ -40,6 +44,9 @@ router.patch(
   validationMiddleware(renameHouseholdSchema),
   controller.renameHousehold
 )
+// Any member may choose which of *their own* households opens on sign-in —
+// this changes nothing for anyone else, so it isn't owner-gated.
+router.post('/:householdId/set-default', householdMiddleware, controller.setDefaultHousehold)
 router.post(
   '/:householdId/invite-code/rotate',
   householdMiddleware,
@@ -55,5 +62,11 @@ router.use('/:householdId/appointments', householdMiddleware, appointmentRoutes)
 router.use('/:householdId/vitals', householdMiddleware, vitalRoutes)
 router.use('/:householdId/tasks', householdMiddleware, taskRoutes)
 router.use('/:householdId/emergency', householdMiddleware, emergencyRoutes)
+// The family chat's REST half — history plus a send that broadcasts to the
+// same Socket.IO room the realtime path uses (src/interfaces/socket).
+router.use('/:householdId/messages', householdMiddleware, messageRoutes)
+router.use('/:householdId/handoff-notes', householdMiddleware, handoffNoteRoutes)
+router.use('/:householdId/documents', householdMiddleware, documentRoutes)
+router.use('/:householdId/expenses', householdMiddleware, expenseRoutes)
 
 module.exports = router

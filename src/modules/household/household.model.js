@@ -12,6 +12,16 @@ const householdSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
+    // Which sort of household this is — drives the group pill's icon and the
+    // "<kind label> · <n> คน" meta line in the design's group switcher sheet
+    // (บ้านพ่อแม่ HouseLine · บ้านแฟน Heart · บ้านญาติ UsersFour · บ้านอื่น Buildings).
+    // Defaults to 'other' so households created before this field existed,
+    // and any client that doesn't send it, stay valid.
+    kind: {
+      type: String,
+      enum: ['parents', 'partner', 'relatives', 'other'],
+      default: 'other'
+    },
     inviteCode: {
       type: String,
       required: true,

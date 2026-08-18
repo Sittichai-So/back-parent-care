@@ -18,16 +18,40 @@ const generateUniqueInviteCode = async () => {
   throw createError('Could not generate a unique invite code, please try again', 500)
 }
 
-const create = async (userId, { name, displayName, relation }) => {
+/**
+ * Points this user's "กลุ่มเริ่มต้น" at one household and clears the flag on
+ * every other membership they hold, so the invariant "at most one default per
+ * user" holds without a partial unique index.
+ */
+// updateMany on both sides rather than a findOne+save: {householdId, userId}
+// is already unique for account-backed memberships, so the "set" half touches
+// exactly one row.
+const setDefaultHousehold = async (userId, householdId) => {
+  await householdMemberRepository.updateMany({ userId, householdId: { $ne: householdId } }, { isDefault: false })
+  await householdMemberRepository.updateMany({ userId, householdId }, { isDefault: true })
+  return householdMemberRepository.findOne({ userId, householdId })
+}
+
+const create = async (userId, { name, displayName, relation, kind }) => {
   const inviteCode = await generateUniqueInviteCode()
-  const household = await householdRepository.create({ name, ownerUserId: userId, inviteCode })
+  const household = await householdRepository.create({
+    name,
+    ownerUserId: userId,
+    inviteCode,
+    ...(kind ? { kind } : {})
+  })
+
+  // "the first group added becomes default automatically" — the household
+  // being created right now is the user's only one when they had none before.
+  const existingCount = await householdMemberRepository.countDocuments({ userId, isActive: true })
 
   const membership = await householdMemberRepository.create({
     householdId: household._id,
     userId,
     role: 'owner',
     displayName,
-    relation
+    relation,
+    isDefault: existingCount === 0
   })
 
   return { household, membership }
@@ -69,8 +93,14 @@ const getById = async (id) => {
   return householdRepository.findById(id)
 }
 
-const rename = async (id, name) => {
-  return householdRepository.updateById(id, { name })
+// Handles both the name and the group `kind` — the design's group sheet lets
+// either be corrected after creation. Only the keys actually supplied are
+// written, so a name-only PATCH never resets kind and vice versa.
+const rename = async (id, { name, kind }) => {
+  const patch = {}
+  if (name !== undefined) patch.name = name
+  if (kind !== undefined) patch.kind = kind
+  return householdRepository.updateById(id, patch)
 }
 
 const rotateInviteCode = async (id) => {
@@ -84,5 +114,6 @@ module.exports = {
   listMine,
   getById,
   rename,
-  rotateInviteCode
+  rotateInviteCode,
+  setDefaultHousehold
 }
