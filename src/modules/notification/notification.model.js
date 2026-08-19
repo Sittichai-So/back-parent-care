@@ -16,7 +16,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['MEDICINE', 'APPOINTMENT', 'SYSTEM', 'EMERGENCY', 'TASK', 'VITALS'],
+      enum: ['MEDICINE', 'APPOINTMENT', 'SYSTEM', 'EMERGENCY', 'TASK', 'VITALS', 'MESSAGE'],
       default: 'SYSTEM'
     },
     title: {

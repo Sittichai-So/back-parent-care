@@ -71,6 +71,7 @@ ensureCollection(
       // migrate-add-member-feature.js backfill runs for pre-existing users.
       userCode: stringOrNull,
       phone: stringOrNull,
+      address: stringOrNull,
       profileImage: stringOrNull,
       role: { bsonType: 'string' },
       isActive: bool
@@ -370,7 +371,7 @@ ensureCollection(
     properties: {
       userId: objectId,
       householdId: objectIdOrNull,
-      type: { enum: ['MEDICINE', 'APPOINTMENT', 'SYSTEM', 'EMERGENCY', 'TASK', 'VITALS'] },
+      type: { enum: ['MEDICINE', 'APPOINTMENT', 'SYSTEM', 'EMERGENCY', 'TASK', 'VITALS', 'MESSAGE'] },
       title: { bsonType: 'string' },
       message: { bsonType: 'string' },
       data: { bsonType: 'object' },

@@ -8,6 +8,10 @@ const findById = async (id) => {
   return Notification.findById(id)
 }
 
+const findOne = async (filter) => {
+  return Notification.findOne(filter)
+}
+
 const create = async (data) => {
   return Notification.create(data)
 }
@@ -22,6 +26,7 @@ const updateById = async (id, data) => {
 module.exports = {
   findAll,
   findById,
+  findOne,
   create,
   updateById
 }

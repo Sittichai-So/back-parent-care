@@ -1,4 +1,6 @@
 const repository = require('./message.repository')
+const householdMemberRepository = require('../household/household-member.repository')
+const notificationRepository = require('../notification/notification.repository')
 const { emitToHousehold, householdRoom } = require('../../interfaces/socket/emitter')
 
 const createError = (message, statusCode) => {
@@ -47,6 +49,32 @@ const sendMessage = async (householdId, membership, { text }) => {
   })
 
   emitToHousehold(householdId, 'receive_message', message.toJSON())
+
+  // Chat badge (the message icon on Home) — every other member with a
+  // linked account gets a MESSAGE notification, same inbox the "การแจ้งเตือน"
+  // screen and emergency alerts already use. Not awaited into the response:
+  // a slow/failed notification fan-out must never delay or break sending
+  // the message itself, which is why this is fire-and-forget with its own
+  // catch rather than part of the main flow above.
+  const notifyOthers = async () => {
+    const members = await householdMemberRepository.findAll({ householdId, isActive: true })
+    const preview = text.length > 80 ? `${text.slice(0, 80)}…` : text
+    await Promise.all(
+      members
+        .filter((member) => member.userId && String(member._id) !== String(membership._id))
+        .map((member) =>
+          notificationRepository.create({
+            userId: member.userId,
+            householdId,
+            type: 'MESSAGE',
+            title: `ข้อความใหม่จาก ${membership.displayName}`,
+            message: preview,
+            data: { messageId: String(message._id) }
+          })
+        )
+    )
+  }
+  notifyOthers().catch((error) => console.error('Message notification fan-out failed', error))
 
   return message
 }

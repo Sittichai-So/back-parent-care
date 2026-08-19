@@ -68,12 +68,18 @@ const join = async (userId, { inviteCode, role, displayName, relation }) => {
     throw createError('คุณเป็นสมาชิกของกลุ่มบ้านนี้อยู่แล้ว', 400)
   }
 
+  // Same "first household becomes default automatically" rule as create() —
+  // without this, an account whose very first household came from joining
+  // (rather than creating one) ends up with no default household at all.
+  const existingCount = await householdMemberRepository.countDocuments({ userId, isActive: true })
+
   const membership = await householdMemberRepository.create({
     householdId: household._id,
     userId,
     role,
     displayName,
-    relation
+    relation,
+    isDefault: existingCount === 0
   })
 
   return { household, membership }
