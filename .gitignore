@@ -4,3 +4,8 @@ node_modules/
 !.env.example
 uploads/
 logs/
+
+# Local dev docker setup (has the Mongo root user/password inline) —
+# keep it out of the repo instead of committing credentials.
+docker-compose.yml
+docker-compose*.yml
