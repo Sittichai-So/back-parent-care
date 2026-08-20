@@ -1,7 +1,9 @@
 const repository = require('./medicine.repository')
 const medicationLogRepository = require('../medication-log/medication-log.repository')
+const notificationRepository = require('../notification/notification.repository')
 const timelineService = require('../timeline/timeline.service')
 const { resolveWriteMemberId, assertOwnRecordOrPrivileged } = require('../../utils/household-scope')
+const { todayKey } = require('../../utils/date')
 
 const createError = (message, statusCode) => {
   const error = new Error(message)
@@ -91,6 +93,19 @@ const logDose = async (medicineId, householdId, membership, data) => {
     detail: medicine.dosage,
     relatedId: log._id
   })
+
+  // A confirmed dose satisfies every reminder sent for it today, including
+  // the hourly "ยังไม่ได้ยืนยัน" escalations (reminder-scheduler.js) sent
+  // before this — otherwise they'd sit there marked unread forever, still
+  // saying "not confirmed yet" about a dose that now has been. Scoped to
+  // 'taken' logs only, matching exactly what stops the scheduler itself from
+  // sending any *more* of them (medicationLogRepository.findLatestTaken).
+  if (data.status === 'taken') {
+    await notificationRepository.updateMany(
+      { type: 'MEDICINE', 'data.medicineId': String(medicine._id), 'data.date': todayKey(new Date()), isRead: false },
+      { isRead: true }
+    )
+  }
 
   return log
 }

@@ -23,10 +23,15 @@ const updateById = async (id, data) => {
   })
 }
 
+const updateMany = async (filter, data) => {
+  return Notification.updateMany(filter, data)
+}
+
 module.exports = {
   findAll,
   findById,
   findOne,
   create,
-  updateById
+  updateById,
+  updateMany
 }
